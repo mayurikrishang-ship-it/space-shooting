@@ -1,0 +1,523 @@
+html code just small 
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Shooter Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a40 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;`	
+        }
+
+        .game-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .game-canvas {
+            border: 2px solid #4a4a8c;
+            border-radius: 8px;
+            background: #000814;
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.3);
+            cursor: none;
+        }
+
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .hud-item {
+            background: rgba(0, 30, 60, 0.8);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #00bfff;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 30, 60, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #00bfff;
+            box-shadow: 0 0 50px rgba(0, 150, 255, 0.5);
+            z-index: 100;
+        }
+
+        .start-screen h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            color: #00bfff;
+            text-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+        }
+
+        .start-screen p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #ccd6f6;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, #00bfff, #0077cc);
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 150, 255, 0.4);
+        }
+
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 150, 255, 0.6);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(30, 0, 30, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            border: 2px solid #ff0066;
+            box-shadow: 0 0 50px rgba(255, 0, 102, 0.5);
+            z-index: 100;
+            display: none;
+        }
+
+        .game-over h2 {
+            font-size: 36px;
+            color: #ff0066;
+            margin-bottom: 20px;
+        }
+
+        .restart-button {
+            background: linear-gradient(45deg, #ff0066, #cc0052);
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 102, 0.4);
+        }
+
+        .restart-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 0, 102, 0.6);
+        }
+
+        .crosshair {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+        }
+
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #00bfff;
+            border-radius: 1px;
+        }
+
+        .crosshair::before {
+            width: 2px;
+            height: 20px;
+            top: 2px;
+            left: 11px;
+        }
+
+        .crosshair::after {
+            width: 20px;
+            height: 2px;
+            top: 11px;
+            left: 2px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            color: #ccd6f6;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" class="game-canvas" width="800" height="600"></canvas>
+        <div class="crosshair"></div>
+        
+        <div class="hud">
+            <div class="hud-item" id="score">SCORE: 0</div>
+            <div class="hud-item" id="time">TIME: 60s</div>
+            <div class="hud-item" id="level">LEVEL: 1</div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+            <h1>SPACE SHOOTER</h1>
+            <p>Aim and click to destroy the alien targets!<br>Score points before time runs out.</p>
+            <button class="start-button" onclick="startGame()">START MISSION</button>
+        </div>
+
+        <div class="game-over" id="gameOver">
+            <h2>MISSION COMPLETE</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button class="restart-button" onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+
+        <div class="controls">
+            Move mouse to aim | Click to shoot
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const timeDisplay = document.getElementById('time');
+        const levelDisplay = document.getElementById('level');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOver');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const crosshair = document.querySelector('.crosshair');
+
+        let score = 0;
+        let timeLeft = 60;
+        let level = 1;
+        let gameActive = false;
+        let gameTimer;
+        let animationId;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Game objects
+        const targets = [];
+        const particles = [];
+
+        class Target {
+            constructor() {
+                this.radius = Math.random() * 20 + 15;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = Math.random() * (canvas.height - this.radius * 2) + this.radius;
+                this.speedX = (Math.random() - 0.5) * (3 + level);
+                this.speedY = (Math.random() - 0.5) * (3 + level);
+                this.color = this.getRandomColor();
+                this.hit = false;
+                this.points = Math.max(1, Math.floor(30 / this.radius));
+            }
+
+            getRandomColor() {
+                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#eb4d4b', '#6c5ce7'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Bounce off walls
+                if (this.x - this.radius < 0 || this.x + this.radius > canvas.width) {
+                    this.speedX = -this.speedX;
+                }
+                if (this.y - this.radius < 0 || this.y + this.radius > canvas.height) {
+                    this.speedY = -this.speedY;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.hit ? '#ffffff' : this.color;
+                ctx.fill();
+                
+                // Add some glow effect
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fill();
+                ctx.restore();
+
+                // Add some detail
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.stroke();
+            }
+
+            isHit(mx, my) {
+                const distance = Math.sqrt((mx - this.x) ** 2 + (my - this.y) ** 2);
+                return distance <= this.radius;
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 2;
+                this.speedX = Math.random() * 6 - 3;
+                this.speedY = Math.random() * 6 - 3;
+                this.color = color;
+                this.life = 1;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.02;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function createTargets(count) {
+            for (let i = 0; i < count; i++) {
+                targets.push(new Target());
+            }
+        }
+
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function updateGame() {
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 8, 20, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw star background
+            drawStars();
+
+            // Update and draw targets
+            targets.forEach((target, index) => {
+                target.update();
+                target.draw();
+
+                // Remove hit targets
+                if (target.hit) {
+                    createParticles(target.x, target.y, target.color, 20);
+                    targets.splice(index, 1);
+                }
+            });
+
+            // Update and draw particles
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+
+                // Remove dead particles
+                if (particle.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Draw crosshair at mouse position
+            drawCrosshair(mouseX, mouseY);
+
+            // Spawn new targets if needed
+            if (targets.length < 5 + level && Math.random() < 0.02) {
+                createTargets(1);
+            }
+
+            // Check level up
+            if (score >= level * 500) {
+                level++;
+                levelDisplay.textContent = `LEVEL: ${level}`;
+                createTargets(2); // Bonus targets on level up
+            }
+        }
+
+        function drawStars() {
+            ctx.fillStyle = 'white';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawCrosshair(x, y) {
+            ctx.save();
+            ctx.strokeStyle = '#00bfff';
+            ctx.lineWidth = 2;
+            
+            // Crosshair lines
+            ctx.beginPath();
+            ctx.moveTo(x - 15, y);
+            ctx.lineTo(x - 5, y);
+            ctx.moveTo(x + 5, y);
+            ctx.lineTo(x + 15, y);
+            ctx.moveTo(x, y - 15);
+            ctx.lineTo(x, y - 5);
+            ctx.moveTo(x, y + 5);
+            ctx.lineTo(x, y + 15);
+            ctx.stroke();
+
+            // Outer circle
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Inner dot
+            ctx.beginPath();
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#00bfff';
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            if (gameActive) {
+                updateGame();
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameActive = true;
+            score = 0;
+            timeLeft = 60;
+            level = 1;
+            targets.length = 0;
+            particles.length = 0;
+            
+            scoreDisplay.textContent = `SCORE: ${score}`;
+            timeDisplay.textContent = `TIME: ${timeLeft}s`;
+            levelDisplay.textContent = `LEVEL: ${level}`;
+            
+            createTargets(5);
+            
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                timeDisplay.textContent = `TIME: ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+            
+            crosshair.style.display = 'block';
+            gameLoop();
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(gameTimer);
+            cancelAnimationFrame(animationId);
+            crosshair.style.display = 'none';
+            
+            finalScoreDisplay.textContent = score;
+            gameOverScreen.style.display = 'block';
+        }
+
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Event listeners
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            
+            // Update crosshair position
+            crosshair.style.left = (e.clientX - 12) + 'px';
+            crosshair.style.top = (e.clientY - 12) + 'px';
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!gameActive) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+            
+            // Check if any target was hit
+            let hit = false;
+            targets.forEach(target => {
+                if (target.isHit(clickX, clickY) && !target.hit) {
+                    target.hit = true;
+                    score += target.points;
+                    scoreDisplay.textContent = `SCORE: ${score}`;
+                    hit = true;
+                    
+                    // Play sound effect (simulated)
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF5fdJivrJBhNjVgodDbq2EcBil7t/LDfDMADFip6tiEMAAFKH7H5LBtLgAENIHM5rV1NgAJOnzC4bqARAAKQIC+37eHUQAMRXq83b+OUwAOPne63sSTWAAQO3S43siZXQARNHG23s2gYgASL2yy3tKlZwATKWmv3tSpbQATJGau3tercwAUHmKr3tuvdwAUFmCp3tyyfAAUF16n3t22gAAUFVyl3t65hQAUElqj3t+8iAAUD1ih3uC/jAAUDVaf3uHBkQAUC1Sd3uLDlAAUCVKb3uPEmQAUB1CZ3uTGnQAUBU+W3uXInwAUBE6U3uXKoQAUBUyS3ubNpgAUBEuR3ubQqQAUBUqP3ubSrAAUBkmO3ubUrwAUBkiN3ubWsgAUBkeM3ubYtQAUBkaL3ubZuAAUBkWK3ubauwAUBUSJ3ubbvQAUBUOI3ubbvwAUBUKH3ubbwQAUBUGH3ubbwgAUBUCG3ubbwwAUBT+G3ubbxA');
+                    audio.volume = 0.3;
+                    audio.play().catch(() => {});
+                }
+            });
+            
+            // Visual feedback for shooting
+            if (hit) {
+                createParticles(clickX, clickY, '#00bfff', 10);
+            }
+        });
+
+        // Hide default cursor
+        document.body.style.cursor = 'none';
+
+        // Initial setup
+        drawStars();
+    </script>
+</body>
+</html>
+
+total 521 line are there
